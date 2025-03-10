@@ -61,9 +61,10 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-west-3
 
-    # Initialize Elastic Beanstalk
+    # Initialize Elastic Beanstalk with  Java Platform
     - name: Initialize Elastic Beanstalk
-      run: eb init -p java-17 art-app --region eu-west-3
+      run: eb init -p "Corretto 17 running on 64bit Amazon Linux 2" art-app --region eu-west-3
+
 
     # Check if Environment Exists
     - name: Check if Environment Exists
