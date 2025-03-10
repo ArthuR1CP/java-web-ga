@@ -1,0 +1,89 @@
+name: CI/CD - Java Maven App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    # Set up cache for Maven dependencies
+    - name: Cache Maven Dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+
+    # Install dependencies and build
+    - name: Build and Run Tests
+      run: |
+        mvn clean package
+        mvn test
+
+    # Upload JAR Artifact
+    - name: Upload JAR Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: maven-build
+        path: target/*.jar
+
+    # Install AWS CLI & EB CLI
+    - name: Check AWS CLI Version
+      run: aws --version
+
+    - name: Install or Update EB CLI
+      run: |
+        python -m pip install --upgrade pip
+        pip install --upgrade awsebcli
+        eb --version
+
+    # AWS Credentials Configuration
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-3
+
+    # Initialize Elastic Beanstalk
+    - name: Initialize Elastic Beanstalk
+      run: eb init -p java-17 art-app --region eu-west-3
+
+    # Check if Environment Exists
+    - name: Check if Environment Exists
+      id: check_env
+      run: |
+        if eb status art-environment-test; then
+          echo "exists=true" >> $GITHUB_ENV
+        else
+          echo "exists=false" >> $GITHUB_ENV
+        fi
+
+    # Deploy or Create Elastic Beanstalk Environment
+    - name: Deploy or Create Environment
+      run: |
+        if [ "$exists" = "true" ]; then
+          echo "Environment exists, deploying..."
+          eb use art-environment-test
+          eb status art-environment-test
+          eb deploy
+        else
+          echo "Environment does not exist, creating..."
+          eb create art-environment-test --cname artart1 --timeout 15
+        fi
