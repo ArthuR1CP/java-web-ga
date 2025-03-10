@@ -57,9 +57,46 @@ jobs:
         name: maven-build
         path: target
 
-    # ✅ Ensure the JAR File Exists Before Deploying
     - name: Verify JAR File
       run: ls -lh target/
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-3
+
+    # ✅ Install EB CLI if not installed
+    - name: Install AWS Elastic Beanstalk CLI
+      run: |
+        python -m pip install --upgrade pip
+        pip install awsebcli --upgrade --user
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        eb --version
+
+    # ✅ Initialize Elastic Beanstalk
+    - name: Initialize Elastic Beanstalk
+      run: eb init -p "Corretto 17 running on 64bit Amazon Linux 2" art-app --region eu-west-3
+
+    # ✅ Check if Environment Exists
+    - name: Check if Environment Exists
+      id: check_env
+      run: |
+        if eb status art-environment-test > /dev/null 2>&1; then
+          echo "exists=true" >> $GITHUB_ENV
+        else
+          echo "exists=false" >> $GITHUB_ENV
+        fi
+
+    # ✅ Create Environment If It Doesn't Exist
+    - name: Create Environment If Missing
+      if: env.exists == 'false'
+      run: |
+        echo "Environment does not exist, creating..."
+        eb create art-environment-test --cname artart1 --timeout 15
+        echo "Waiting for environment to be ready..."
+        sleep 180  # Wait for EB to initialize before deploying
 
     # ✅ Deploy to AWS Elastic Beanstalk Using `beanstalk-deploy`
     - name: Deploy to AWS Elastic Beanstalk
@@ -67,8 +104,8 @@ jobs:
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: art-test
-        environment_name: art-test-env
+        application_name: art-app
+        environment_name: art-environment-test
         version_label: ${{ github.sha }}
-        region: eu-west-1  
-        deployment_package: target/maven-test-1.0-SNAPSHOT.jar  # Make sure this matches your actual JAR name
+        region: eu-west-3
+        deployment_package: target/maven-test-1.0-SNAPSHOT.jar  # Ensure this matches your actual JAR name
