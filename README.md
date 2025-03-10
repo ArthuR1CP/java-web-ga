@@ -31,7 +31,7 @@ mvn clean package
 ```
 
 ### 3️⃣ Run the Application
-By default, the application runs on **port 8001**:
+By default, the application runs on **port 5000**:
 ```sh
 mvn spring-boot:run
 ```
@@ -40,22 +40,22 @@ mvn spring-boot:run
 
 #### ✅ Create a User (POST)
 ```sh
-curl -X POST http://localhost:8001/users      -H "Content-Type: application/json"      -d '{"name": "Artur Cepuc", "email": "arturcepuc@gmail.com"}'
+curl -X POST http://localhost:5000/users      -H "Content-Type: application/json"      -d '{"name": "Artur Cepuc", "email": "arturcepuc@gmail.com"}'
 ```
 
 #### ✅ Get All Users (GET)
 ```sh
-curl -X GET http://localhost:8001/users
+curl -X GET http://localhost:5000/users
 ```
 
 #### ✅ Get User by ID (GET)
 ```sh
-curl -X GET http://localhost:8001/users/1
+curl -X GET http://localhost:5000/users/1
 ```
 
 #### ✅ Delete a User (DELETE)
 ```sh
-curl -X DELETE http://localhost:8001/users/1
+curl -X DELETE http://localhost:5000/users/1
 ```
 
 ---
