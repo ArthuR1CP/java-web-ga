@@ -42,6 +42,13 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <!-- ✅ H2 Database for Runtime & Testing (Ensures It’s Packaged) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>compile</scope>  <!-- ✅ Changed from runtime to compile -->
+        </dependency>
+
         <!-- ✅ JUnit 5 API (For Writing Tests) -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -69,7 +76,7 @@
             </exclusions>
         </dependency>
 
-        <!-- ✅ SLF4J API -->
+        <!-- ✅ SLF4J API (For Logging) -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -80,13 +87,6 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
         </dependency>
-        
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
 
         <!-- ✅ Spring Boot Logging Starter (Ensures Proper Logging) -->
         <dependency>
@@ -94,47 +94,27 @@
             <artifactId>spring-boot-starter-logging</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- ✅ JUnit 5 API -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- ✅ JUnit 5 Engine -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- ✅ H2 Database for Testing -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>
         <plugins>
-            <!-- ✅ Spring Boot Maven Plugin -->
+            <!-- ✅ Spring Boot Maven Plugin (Ensures Dependencies Are Packaged in the JAR) -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includeSystemScope>true</includeSystemScope>
+                    <layers>
+                        <enabled>true</enabled>
+                    </layers>
+                </configuration>
             </plugin>
 
             <!-- ✅ Compiler Plugin to Ensure Java 17 Compatibility -->
