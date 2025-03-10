@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -21,7 +20,7 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    # Set up cache for Maven dependencies
+    # Cache Maven Dependencies
     - name: Cache Maven Dependencies
       uses: actions/cache@v3
       with:
@@ -30,13 +29,13 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
 
-    # Install dependencies and build
+    # Build the JAR File
     - name: Build and Run Tests
       run: |
         mvn clean package
         mvn test
 
-    # ✅ Upload JAR Artifact
+    # ✅ Upload the JAR File as an Artifact
     - name: Upload JAR Artifact
       uses: actions/upload-artifact@v4
       with:
@@ -51,58 +50,25 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Download the JAR Artifact
+    # ✅ Download the Built JAR File
+    - name: Download JAR Artifact
       uses: actions/download-artifact@v4
       with:
         name: maven-build
         path: target
-    
-    # Install AWS CLI & EB CLI
-    - name: Check AWS CLI Version
-      run: aws --version
 
-    - name: Install or Update EB CLI
-      run: |
-        python -m pip install --upgrade pip
-        pip install --upgrade awsebcli
-        eb --version
+    # ✅ Ensure the JAR File Exists Before Deploying
+    - name: Verify JAR File
+      run: ls -lh target/
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1
+    # ✅ Deploy to AWS Elastic Beanstalk Using `beanstalk-deploy`
+    - name: Deploy to AWS Elastic Beanstalk
+      uses: einaregilsson/beanstalk-deploy@v13
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-west-3
-
-    - name: Create Procfile for Elastic Beanstalk
-      run: |
-        JAR_NAME=$(ls target/*.jar | head -n 1)
-        echo "web: java -jar $JAR_NAME --server.port=8080" > Procfile
-        cat Procfile
-
-    # ✅ Initialize Elastic Beanstalk with Correct Java Platform
-    - name: Initialize Elastic Beanstalk
-      run: eb init -p "Corretto 17 running on 64bit Amazon Linux 2" art-app --region eu-west-3
-
-
-    # ✅ Check if Environment Exists
-    - name: Check if Environment Exists
-      id: check_env
-      run: |
-        if eb status art-environment-test; then
-          echo "exists=true" >> $GITHUB_ENV
-        else
-          echo "exists=false" >> $GITHUB_ENV
-        fi
-
-    # ✅ Deploy or Create Elastic Beanstalk Environment
-    - name: Deploy or Create Environment
-      run: |
-        if [ "$exists" = "true" ]; then
-          echo "Environment exists, deploying..."
-          eb use art-environment-test
-          eb deploy --staged
-        else
-          echo "Environment does not exist, creating..."
-          eb create art-environment-test --cname artart1 --timeout 15
-        fi
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        application_name: art-test
+        environment_name: art-test-env
+        version_label: ${{ github.sha }}
+        region: eu-west-1  
+        deployment_package: target/maven-test-1.0-SNAPSHOT.jar  # Make sure this matches your actual JAR name
