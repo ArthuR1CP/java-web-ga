@@ -88,14 +88,6 @@ jobs:
         else
           echo "exists=false" >> $GITHUB_ENV
         fi
-    
-    # ✅ Create Temporary Files for First-Time Deployment
-    - name: Prepare First-Time Deployment Files
-      if: env.exists == 'false'
-      run: |
-        echo "web: java -jar app.jar" > Procfile
-        touch app.jar  # Create a dummy JAR file to satisfy AWS EB
-        zip first-deployment.zip Procfile app.jar
 
     # ✅ Create Environment If It Doesn't Exist
     - name: Create Environment If Missing
