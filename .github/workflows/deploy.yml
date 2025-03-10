@@ -36,24 +36,27 @@ jobs:
         mvn clean package
         mvn test
 
-    # Upload JAR Artifact
+    # ✅ Upload JAR Artifact
     - name: Upload JAR Artifact
       uses: actions/upload-artifact@v4
       with:
         name: maven-build
         path: target/*.jar
 
-    # Install AWS CLI & EB CLI
-    - name: Check AWS CLI Version
-      run: aws --version
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
 
-    - name: Install or Update EB CLI
-      run: |
-        python -m pip install --upgrade pip
-        pip install --upgrade awsebcli
-        eb --version
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-    # AWS Credentials Configuration
+    - name: Download the JAR Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: maven-build
+        path: target
+
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -61,12 +64,18 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: eu-west-3
 
-    # Initialize Elastic Beanstalk with  Java Platform
+    - name: Create Procfile for Elastic Beanstalk
+      run: |
+        JAR_NAME=$(ls target/*.jar | head -n 1)
+        echo "web: java -jar $JAR_NAME --server.port=8080" > Procfile
+        cat Procfile
+
+    # ✅ Initialize Elastic Beanstalk with Correct Java Platform
     - name: Initialize Elastic Beanstalk
       run: eb init -p "Corretto 17 running on 64bit Amazon Linux 2" art-app --region eu-west-3
 
 
-    # Check if Environment Exists
+    # ✅ Check if Environment Exists
     - name: Check if Environment Exists
       id: check_env
       run: |
@@ -76,14 +85,13 @@ jobs:
           echo "exists=false" >> $GITHUB_ENV
         fi
 
-    # Deploy or Create Elastic Beanstalk Environment
+    # ✅ Deploy or Create Elastic Beanstalk Environment
     - name: Deploy or Create Environment
       run: |
         if [ "$exists" = "true" ]; then
           echo "Environment exists, deploying..."
           eb use art-environment-test
-          eb status art-environment-test
-          eb deploy
+          eb deploy --staged
         else
           echo "Environment does not exist, creating..."
           eb create art-environment-test --cname artart1 --timeout 15
