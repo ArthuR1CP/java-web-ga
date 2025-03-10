@@ -83,20 +83,27 @@ jobs:
     - name: Check if Environment Exists
       id: check_env
       run: |
-        if eb status art-environment-test2 > /dev/null 2>&1; then
+        if eb status art-environment-test3 > /dev/null 2>&1; then
           echo "exists=true" >> $GITHUB_ENV
         else
           echo "exists=false" >> $GITHUB_ENV
         fi
+    
+    # ✅ Create Temporary Files for First-Time Deployment
+    - name: Prepare First-Time Deployment Files
+      if: env.exists == 'false'
+      run: |
+        echo "web: java -jar app.jar" > Procfile
+        touch app.jar  # Create a dummy JAR file to satisfy AWS EB
+        zip first-deployment.zip Procfile app.jar
 
     # ✅ Create Environment If It Doesn't Exist
     - name: Create Environment If Missing
       if: env.exists == 'false'
       run: |
         echo "Environment does not exist, creating..."
-        eb create art-environment-test2 --cname artart2 --timeout 15
+        eb create art-environment-test3 --cname artart2 --timeout 15
         echo "Waiting for environment to be ready..."
-        sleep 180  # Wait for EB to initialize before deploying
 
     # ✅ Deploy to AWS Elastic Beanstalk Using `beanstalk-deploy`
     - name: Deploy to AWS Elastic Beanstalk
@@ -105,7 +112,7 @@ jobs:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         application_name: art-app
-        environment_name: art-environment-test2
+        environment_name: art-environment-test3
         version_label: ${{ github.sha }}
         region: eu-west-3
         deployment_package: target/maven-test-1.0-SNAPSHOT.jar  # Ensure this matches your actual JAR name
