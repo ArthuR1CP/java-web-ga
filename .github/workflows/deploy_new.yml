@@ -59,7 +59,7 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v2
         with:
-          name: my-app-jar  # Same name used when uploading the artifact
+          name: my-app-jar  # Ensure this name matches the name used during upload
 
       # Build Docker image
       - name: Build Docker image
