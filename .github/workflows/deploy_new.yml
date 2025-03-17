@@ -1,0 +1,55 @@
+name: CI/CD - Java Maven App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Cache Maven Dependencies
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Build the JAR File
+      - name: Build and Run Tests
+        run: |
+          mvn clean package
+          mvn test
+
+      # ✅ Upload the JAR File to GitHub Packages
+      - name: Upload JAR to GitHub Packages
+        run: |
+          # GitHub Packages uses the repository's name in the URL
+          # Get the name of the JAR file from the target folder
+          JAR_FILE=$(find target -name "*.jar" | head -n 1)
+
+          # Define the GitHub package URL for uploading
+          GITHUB_API_URL="https://uploads.github.com/repos/${{ github.repository }}/releases/latest/assets"
+
+          # Upload the .jar to GitHub Packages using the GitHub API
+          curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+               -X POST \
+               -F "file=@${JAR_FILE}" \
+               -F "name=$(basename ${JAR_FILE})" \
+               -F "label=latest" \
+               "$GITHUB_API_URL"
+
