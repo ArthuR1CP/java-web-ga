@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy the JAR file from the target folder into the container's /app directory
-COPY target/*.jar app.jar
+COPY maven-test-1.0-SNAPSHOT.jar app.jar
 
 # Expose the port your Spring Boot app will run on (default is 8080)
 EXPOSE 8080
