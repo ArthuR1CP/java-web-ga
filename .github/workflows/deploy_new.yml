@@ -38,7 +38,7 @@ jobs:
 
       # Upload the JAR artifact for the Docker job to use
       - name: Upload JAR artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: my-app-jar  # Artifact name
           path: target/*.jar  # Path to the built JAR
@@ -57,7 +57,7 @@ jobs:
 
       # Download the JAR artifact from the maven-build job
       - name: Download JAR artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: my-app-jar  # Same name used during the artifact upload
 
