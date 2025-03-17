@@ -1,4 +1,4 @@
-name: CI/CD - Java Maven App
+name: CI/CD - Java Maven App 2
 
 on:
   push:
