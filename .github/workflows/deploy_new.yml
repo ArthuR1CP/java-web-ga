@@ -1,4 +1,4 @@
-name: CI/CD - Java Maven App 2
+name: CI/CD - Java Maven App
 
 on:
   push:
@@ -35,21 +35,16 @@ jobs:
           mvn clean package
           mvn test
 
-      # ✅ Upload the JAR File to GitHub Packages
+      # ✅ Upload JAR to GitHub Packages (Maven repository)
       - name: Upload JAR to GitHub Packages
         run: |
-          # GitHub Packages uses the repository's name in the URL
-          # Get the name of the JAR file from the target folder
+          # GitHub Packages Maven URL
+          GITHUB_REPO="${{ github.repository }}"
           JAR_FILE=$(find target -name "*.jar" | head -n 1)
-
-          # Define the GitHub package URL for uploading
-          GITHUB_API_URL="https://uploads.github.com/repos/${{ github.repository }}/releases/latest/assets"
-
-          # Upload the .jar to GitHub Packages using the GitHub API
+          
+          # Upload the JAR file to GitHub Packages
           curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-               -X POST \
+               -X PUT \
                -F "file=@${JAR_FILE}" \
-               -F "name=$(basename ${JAR_FILE})" \
-               -F "label=latest" \
-               "$GITHUB_API_URL"
+               "https://maven.pkg.github.com/${GITHUB_REPO}/art-app/$(basename ${JAR_FILE})"
 
