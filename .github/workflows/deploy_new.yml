@@ -36,11 +36,11 @@ jobs:
           mvn clean package
           mvn test
 
-      # Upload the JAR artifact for the Docker job to use
+      # Ensure that the .jar file exists and upload it as an artifact
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v2
         with:
-          name: my-app-jar  # Artifact name
+          name: my-app-jar  # Name of the artifact
           path: target/*.jar  # Path to the built JAR
 
   # Job to build Docker image and push to GitHub Container Registry
@@ -59,12 +59,12 @@ jobs:
       - name: Download JAR artifact
         uses: actions/download-artifact@v2
         with:
-          name: my-app-jar  # Ensure this name matches the name used during upload
+          name: my-app-jar  # Same name used during the artifact upload
 
       # Build Docker image
       - name: Build Docker image
         run: |
-          # Copy the downloaded JAR into the Docker container
+          # Build the Docker image using the downloaded JAR
           docker build -t my-app:local .
 
       # Log in to GitHub Container Registry
