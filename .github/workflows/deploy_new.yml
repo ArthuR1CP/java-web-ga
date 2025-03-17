@@ -36,7 +36,6 @@ jobs:
           mvn clean package
           mvn test
 
-
   # Job to build Docker image and push to GitHub Container Registry
   docker-build:
     runs-on: ubuntu-latest
@@ -49,21 +48,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Set up JDK 17 (if needed for Docker image)
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      # Download the JAR artifact from the maven-build job
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: my-app-jar
-
-      # Build Docker image
       - name: Build Docker image
         run: |
+          # Build Docker image using the JAR file already created in the maven-build job
           docker build -t my-app:local .
 
       # Log in to GitHub Container Registry
