@@ -1,4 +1,4 @@
-name: CI/CD - Java Maven App
+name: CI/CD - Java Maven App 2
 
 on:
   push:
@@ -36,15 +36,24 @@ jobs:
           mvn test
 
       # ✅ Upload JAR to GitHub Packages (Maven repository)
+      # ✅ Upload JAR to GitHub Packages (Maven repository)
       - name: Upload JAR to GitHub Packages
         run: |
-          # GitHub Packages Maven URL
+          # GitHub Packages Maven URL (using groupId, artifactId, and version)
           GITHUB_REPO="${{ github.repository }}"
           JAR_FILE=$(find target -name "*.jar" | head -n 1)
-          
+
+          # Define the version (this could be taken from the version in your pom.xml)
+          VERSION="1.0.0"
+          GROUP_ID="com/example"
+          ARTIFACT_ID="art-app"
+
+          # Construct the GitHub Packages URL for uploading
+          PACKAGE_URL="https://maven.pkg.github.com/${GITHUB_REPO}/${GROUP_ID}/${ARTIFACT_ID}/${VERSION}/${ARTIFACT_ID}-${VERSION}.jar"
+
           # Upload the JAR file to GitHub Packages
           curl -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
                -X PUT \
                -F "file=@${JAR_FILE}" \
-               "https://maven.pkg.github.com/${GITHUB_REPO}/art-app/$(basename ${JAR_FILE})"
+               "$PACKAGE_URL"
 
