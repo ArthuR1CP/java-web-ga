@@ -10,6 +10,6 @@ public class HomeController {
 
     @GetMapping
     public String home() {
-        return "Java ART APP5 ";
+        return "Java ART APP6 ";
     }
 }
