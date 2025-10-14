@@ -10,6 +10,6 @@ public class HomeController {
 
     @GetMapping
     public String home() {
-        return "Java ART APP8 ";
+        return "SkillBrain Spring Boot Application is running! - Test 1";
     }
 }
