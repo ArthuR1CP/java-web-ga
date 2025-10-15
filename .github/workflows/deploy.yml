@@ -77,13 +77,13 @@ jobs:
 
     # ✅ Initialize Elastic Beanstalk
     - name: Initialize Elastic Beanstalk
-      run: eb init -p "Corretto 17 running on 64bit Amazon Linux 2" art-app --region eu-west-3
+      run: eb init -p "Corretto 17 running on 64bit Amazon Linux 2" skillbrain-app --region eu-west-3
 
     # ✅ Check if Environment Exists
     - name: Check if Environment Exists
       id: check_env
       run: |
-        if eb status art-environment-test3 > /dev/null 2>&1; then
+        if eb status skillbrain-environment-1 > /dev/null 2>&1; then
           echo "exists=true" >> $GITHUB_ENV
         else
           echo "exists=false" >> $GITHUB_ENV
@@ -94,7 +94,7 @@ jobs:
       if: env.exists == 'false'
       run: |
         echo "Environment does not exist, creating..."
-        eb create art-environment-test3 --cname artart2 --timeout 15
+        eb create skillbrain-environment-1 --cname skillbrain --timeout 15
         echo "Waiting for environment to be ready..."
 
     # ✅ Deploy to AWS Elastic Beanstalk Using `beanstalk-deploy`
@@ -103,8 +103,8 @@ jobs:
       with:
         aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: art-app
-        environment_name: art-environment-test3
+        application_name: skillbrain-app
+        environment_name: skillbrain-environment-1
         version_label: ${{ github.sha }}
         region: eu-west-3
         deployment_package: target/maven-test-1.0-SNAPSHOT.jar  # Ensure this matches your actual JAR name
